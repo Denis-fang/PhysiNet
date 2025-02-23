@@ -1,34 +1,45 @@
 import torch
-from torch.utils.data import Dataset
-from PIL import Image
+from torch.utils.data import Dataset, DataLoader
+from torchvision import datasets, transforms
 import os
-import torchvision.transforms as transforms
 
-class ImageDataset(Dataset):
-    def __init__(self, data_dir, mode='train', transform=None):
-        self.data_dir = data_dir
-        self.mode = mode
-        self.transform = transform or transforms.Compose([
-            transforms.Resize((256, 256)),
+def get_dataloaders(dataset_name, batch_size=32, data_dir='data'):
+    """获取数据加载器"""
+    if dataset_name.lower() == 'cifar10':
+        transform = transforms.Compose([
+            transforms.RandomHorizontalFlip(),
+            transforms.RandomCrop(32, padding=4),
             transforms.ToTensor(),
+            transforms.Normalize((0.4914, 0.4822, 0.4465), 
+                               (0.2023, 0.1994, 0.2010))
         ])
         
-        # 获取图像文件列表
-        self.image_files = []
-        data_path = os.path.join(data_dir, mode)
-        for file in os.listdir(data_path):
-            if file.endswith(('.png', '.jpg', '.jpeg')):
-                self.image_files.append(os.path.join(data_path, file))
-                
-    def __len__(self):
-        return len(self.image_files)
-    
-    def __getitem__(self, idx):
-        image_path = self.image_files[idx]
-        image = Image.open(image_path).convert('RGB')
+        train_dataset = datasets.CIFAR10(root=data_dir, train=True,
+                                       download=True, transform=transform)
+        test_dataset = datasets.CIFAR10(root=data_dir, train=False,
+                                      transform=transform)
+                                      
+    elif dataset_name.lower() == 'imagenet':
+        transform = transforms.Compose([
+            transforms.RandomResizedCrop(224),
+            transforms.RandomHorizontalFlip(),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                               std=[0.229, 0.224, 0.225])
+        ])
         
-        if self.transform:
-            image = self.transform(image)
-            
-        # 这里可以添加数据预处理或数据增强的步骤
-        return image, image  # 返回原图和目标图像对
+        train_dir = os.path.join(data_dir, 'imagenet/train')
+        val_dir = os.path.join(data_dir, 'imagenet/val')
+        
+        train_dataset = datasets.ImageFolder(train_dir, transform=transform)
+        test_dataset = datasets.ImageFolder(val_dir, transform=transform)
+    
+    else:
+        raise ValueError(f"不支持的数据集: {dataset_name}")
+        
+    train_loader = DataLoader(train_dataset, batch_size=batch_size,
+                            shuffle=True, num_workers=4)
+    test_loader = DataLoader(test_dataset, batch_size=batch_size,
+                           shuffle=False, num_workers=4)
+    
+    return train_loader, test_loader
