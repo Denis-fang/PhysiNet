@@ -1,0 +1,17 @@
+# 测试配置
+testing:
+  batch_size: 16
+  model_path: "experiments/results/best_model.pth"
+  save_dir: "experiments/results/test_samples"
+  num_save_samples: 10  # 保存多少张测试样本
+
+# 模型配置
+model:
+  in_channels: 3
+  out_channels: 6  # 确保是in_channels的倍数
+
+# 数据配置
+data:
+  dataset: "cifar10"  # 或 "imagenet"
+  data_path: "data"
+  image_size: 32  # CIFAR10用32, ImageNet用224 

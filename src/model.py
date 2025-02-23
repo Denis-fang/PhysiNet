@@ -6,6 +6,10 @@ class SepONet(nn.Module):
     """可分离算子网络实现"""
     def __init__(self, in_channels, out_channels):
         super(SepONet, self).__init__()
+        # 确保out_channels是in_channels的倍数
+        if out_channels % in_channels != 0:
+            raise ValueError("out_channels must be a multiple of in_channels")
+        
         self.spatial_conv = nn.Conv2d(in_channels, out_channels, 
                                     kernel_size=3, padding=1, groups=in_channels)
         self.point_conv = nn.Conv2d(out_channels, out_channels, 
@@ -71,14 +75,19 @@ class GCDDLayer(nn.Module):
         return kernel
 
 class PhysiNet(nn.Module):
-    def __init__(self, in_channels=3, out_channels=3):
+    def __init__(self, in_channels, out_channels):
         super(PhysiNet, self).__init__()
+        # 确保out_channels是in_channels的倍数
+        if out_channels % in_channels != 0:
+            raise ValueError("out_channels must be a multiple of in_channels")
+        
+        self.layer1 = SepONet(in_channels, in_channels * 2)
         
         # SepONet编码器
         self.encoder = nn.ModuleList([
-            SepONet(in_channels, 64),
-            SepONet(64, 128),
-            SepONet(128, 256)
+            SepONet(in_channels, in_channels * 2),  # 确保是倍数关系
+            SepONet(in_channels * 2, in_channels * 4),
+            SepONet(in_channels * 4, in_channels * 8)
         ])
         
         # G-CDD物理约束层
@@ -86,9 +95,8 @@ class PhysiNet(nn.Module):
         
         # SepONet解码器
         self.decoder = nn.ModuleList([
-            SepONet(256, 128),
-            SepONet(128, 64),
-            SepONet(64, out_channels)
+            SepONet(256, 256),  # 确保是倍数关系
+            SepONet(128, out_channels)
         ])
         
         self.pool = nn.MaxPool2d(2)
