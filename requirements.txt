@@ -1,0 +1,11 @@
+torch>=1.7.0
+torchvision>=0.8.0
+numpy>=1.19.0
+matplotlib>=3.3.0
+opencv-python>=4.5.0
+PyYAML>=5.4.0
+tqdm>=4.50.0
+mamba-ssm>=1.0.0
+causal-conv1d>=1.1.0
+triton>=2.1.0
+einops>=0.3.0 

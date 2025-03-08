@@ -1,0 +1,142 @@
+# 训练配置
+training:
+  batch_size: 32          # 减小批量大小，CelebA图像较大
+  learning_rate: 0.0005   # 调整学习率
+  epochs: 500              # 减少训练轮数
+  save_dir: 'checkpoints'
+  weight_decay: 0.0005    # 调整权重衰减
+  log_dir: 'logs'
+  vis_freq: 1
+  grad_clip: 1.0
+  
+  # 梯度累积
+  gradient_accumulation_steps: 2  # 启用梯度累积，因为CelebA图像较大
+  
+  scheduler:
+    type: "cosine"
+    min_lr: 0.00001      
+    warmup_epochs: 5
+  
+  checkpoint:
+    save_freq: 1
+    keep_num: 3
+  
+  optimizer:
+    type: "adamw"
+    weight_decay: 0.0001
+    beta1: 0.9
+    beta2: 0.999
+    eps: 1e-8
+  
+  # 启用混合精度训练
+  mixed_precision:
+    enabled: true
+    dtype: "float32"  # 使用 float32，避免 float16 的限制
+  
+  visualization:
+    enabled: true
+    freq: 1      
+    num_samples: 2  # 减少可视化样本数
+    paper_figures:
+      enabled: true
+      freq: 10      
+      dpi: 300      
+      format: "png" 
+  
+  logging:
+    level: "INFO"
+    save_freq: 100
+
+# 内存优化设置
+memory_optimization:
+  pytorch_cuda_alloc_conf: "max_split_size_mb:128"  # 增加最大分割大小
+  empty_cache: true  # 在每个epoch后清空缓存
+  gradient_accumulation: 2  # 启用梯度累积
+
+# 模型配置
+model:
+  type: "seponet"
+  in_channels: 3
+  out_channels: 3
+  d_model: 48       # 增加模型维度，适应更大的图像尺寸
+  init_weights: true
+  use_gcdd: true
+  gcdd_weight: 0.15
+  use_mamba: true
+  
+  # SepONet特定参数
+  seponet:
+    num_blocks: 3     # 增加块数量
+    expansion: 2
+    attention_heads: 4  # 增加注意力头数
+    attention_dropout: 0.1
+    
+  # G-CDD特定参数
+  gcdd:
+    time_steps: 6     # 增加时间步数
+    dt: 0.01
+    alpha: 0.1
+    beta: 0.01
+    
+  # MixOfMamba特定参数
+  mamba:
+    num_experts: 2
+    d_state: 16       # 增加状态维度
+    d_conv: 3
+    diversity_weight: 0.01
+
+# 数据配置
+data:
+  dataset: "celeba"     # 更改为CelebA数据集
+  data_dir: "data/celeba"  # 使用相对路径
+  image_size: 256        # 调整为CelebA的图像尺寸
+  train_val_split: 0.8    # 保持训练/验证比例
+  validate_dataset: false # 不需要验证
+  max_images: 3000       # 限制图像数量为3000张
+  corruption:
+    type: "mixed"         # 使用混合噪声模式
+    noise_level: 0.01     # 调整噪声级别
+    mask_ratio: 0.95      # 保持较高的保留像素比例
+    paper_corruption:     # 为论文图像使用的损坏设置
+      type: "paper_mixed" # 使用专为论文设计的损坏类型
+      noise_level: 0.01   # 保持一致的噪声级别
+      mask_ratio: 0.95    # 保持一致的掩码比例
+
+# 需要补充：
+# - 数据增强配置
+# - 模型保存配置
+# - 日志配置
+# - 评估指标配置
+# - 调试选项 
+
+evaluation:
+  metrics:
+    - "psnr"
+    - "ssim"
+  freq: 1  # 评估频率
+
+augmentation:
+  enabled: true  # 启用数据增强
+  random_crop: false
+  random_flip: true
+  random_rotation: false  # 禁用随机旋转
+  color_jitter:
+    enabled: true
+    brightness: 0.05   # 减小亮度调整，提高颜色还原度
+    contrast: 0.05     # 减小对比度调整，提高颜色还原度
+    saturation: 0.05   # 减小饱和度调整，提高颜色还原度
+    hue: 0.02          # 减小色调调整，提高颜色还原度
+  preserve_structure: true  # 启用结构保持型增强
+  gaussian_blur:
+    enabled: false    # 禁用高斯模糊
+  sharpness:
+    enabled: true     # 启用锐化，CelebA图像较大
+
+debug:
+  enabled: true   # 启用调试模式
+  verbose: true
+  profile: false 
+  
+mixture_mamba:
+  diversity_weight: 0.01  # 多样性权重
+  routing_temperature: 2.0  # 路由温度，使分布更平滑 

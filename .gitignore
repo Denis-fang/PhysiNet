@@ -1,0 +1,58 @@
+# 数据集文件
+data/
+*.tar.gz
+*.zip
+*.h5
+*.hdf5
+
+# Python缓存文件
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 虚拟环境
+venv/
+env/
+.env/
+.venv/
+
+# 模型权重和结果
+*.pth
+*.pt
+*.ckpt
+experiments/results/
+
+# 日志文件
+*.log
+logs/
+tensorboard/
+
+# IDE配置文件
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 临时文件
+tmp/
+temp/
+
+# 编译文件
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+*.egg-info/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb
+
+# 其他
+*.bak
+*.tmp 
